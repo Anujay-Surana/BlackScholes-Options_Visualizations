@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black-Scholes Option Pricing</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Black-Scholes Option Pricing</h1>
+    <form id="optionForm">
+        <label for="S">Stock Price (S):</label>
+        <input type="text" id="S" name="S"><br><br>
+        <label for="K">Strike Price (K):</label>
+        <input type="text" id="K" name="K"><br><br>
+        <label for="r">Risk-Free Rate (r):</label>
+        <input type="text" id="r" name="r"><br><br>
+        <label for="v">Volatility (v):</label>
+        <input type="text" id="v" name="v"><br><br>
+        <label for="T">Time to Maturity (T):</label>
+        <input type="text" id="T" name="T"><br><br>
+        <label for="option_type">Option Type:</label>
+        <select id="option_type" name="option_type">
+            <option value="call">Call</option>
+            <option value="put">Put</option>
+        </select><br><br>
+        <button type="button" onclick="calculateOptionPrice()">Calculate</button>
+    </form>
+    <h2>Option Price: <span id="price"></span></h2>
+    <canvas id="optionChart" width="400" height="200"></canvas>
+    <script>
+        function calculateOptionPrice() {
+            const S = document.getElementById('S').value;
+            const K = document.getElementById('K').value;
+            const r = document.getElementById('r').value;
+            const v = document.getElementById('v').value;
+            const T = document.getElementById('T').value;
+            const option_type = document.getElementById('option_type').value;
+
+            fetch('/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ S, K, r, v, T, option_type }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('price').textContent = data.price;
+                updateChart(S, K, r, v, T, data.price);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function updateChart(S, K, r, v, T, price) {
+            const ctx = document.getElementById('optionChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['S', 'K', 'r', 'v', 'T'],
+                    datasets: [{
+                        label: 'Option Parameters',
+                        data: [S, K, r, v, T, price],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
